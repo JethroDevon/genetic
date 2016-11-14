@@ -35,6 +35,7 @@ class Genetic{
     ArrayList<mutant> mutants = new ArrayList<mutant>();
     int[][] distanceMatrix = new int[8][8];
     BufferedReader br;
+    int totalmutations = 0;
 
     //constructor takes in file containing matrix of 6 distances
     //and the starting population of mutants
@@ -171,11 +172,12 @@ class Genetic{
 
     //this runs the program for one generation, the first argument is the percentage of
     //the population to keep after sorting, the next two args are the crossover points
-    //for breeding
-    void generation( double percpop, int pointOne, int pointTwo){
+    //for breeding finaly the mutation rate has a chance of swapping two chromosones
+    //based on percentage of the population
+    void generation( double percpop, int pointOne, int pointTwo, double mutationRate){
 
 	//breeds each mutant against the other
-	breed( pointOne, pointTwo);
+	breed( pointOne, pointTwo, mutationRate);
 
         //the following block discards the remaining percentage of the sorted arraylist of mutants
         double pop = mutants.size();
@@ -188,17 +190,29 @@ class Genetic{
 	    survivors.add( mutants.get(i));
 	}
 
-	System.out.println( "how" + survivors.size());
+	//make sure there is always two survivors
+	if( survivors.size() == 0 ){
+
+	    survivors.add( mutants.get(0));
+	    survivors.add( mutants.get(1));
+	}else if(survivors.size() == 1){
+
+	    survivors.add( mutants.get(1));
+	}
 
 	//the mutants are wiped out
 	mutants.clear();
+	
 	//but the survivors are added to the final population
 	mutants.addAll( survivors);
+
+        //prints a little population data
+	printPop();
     }
 
     //breeds whole array against each other and adds the children to the array againm then sorts the array
     //based on distances
-    void breed( int pointOne, int pointTwo){
+    void breed( int pointOne, int pointTwo, double mutationrate){
 
 	ArrayList<mutant>babies = new ArrayList<mutant>();
 
@@ -214,34 +228,71 @@ class Genetic{
 	}
 
 	mutants.addAll(babies);
+
+	totalmutations = 0;
+	
+	//mutate some of the mutants
+	mutate( mutationrate);
 	
 	//following block is a bubble sort operation on the arraylist of mutants
-	boolean sorted = false;
-        while( !sorted) {
-	    
-	    mutant tempmutant;
-	    sorted = true;
+	boolean sorted = true;
+	mutant tempmutant;
+	
+        while( sorted) {
+	    	    
+	    sorted = false;
 	    
 	    for (int i = 0; i < mutants.size()-1; i++) {
 
 		if( mutants.get(i).distance < mutants.get(i+1).distance ){
 
 		    tempmutant = mutants.get(i);
-		    mutants.set( i, mutants.get(i));
-		    mutants.set( i+1,tempmutant);
-		    sorted = false;
+		    mutants.set( i, mutants.get(i+1));
+		    mutants.set( i+1, tempmutant);
+		    sorted = true;
 		}
 	    }
+	}	    
+    }
+
+    //chance of mutating a mutant
+    void mutate( double rate){
+
+	//work out what the rate is in relation to the size
+	//of the population
+	double pop = mutants.size();
+	double chance = (pop/100) * rate;
+
+	for (int i = 0; i < mutants.size(); i++) {
+
+	    	Random rand = new Random();
+		int predict = rand.nextInt( (int)pop);
+
+		//if the prediction is less than the chance
+		//of mutation, mutate the gene
+		if( chance > predict){
+
+		    int swapA = rand.nextInt(8);
+		    int swapB = rand.nextInt(8);
+		    // System.out.print("mutation: ");
+		    //    mutants.get(i).showGenes();
+		    int temp = mutants.get(i).order[swapA];
+		    mutants.get(i).order[swapA] = mutants.get(i).order[swapB];
+		    mutants.get(i).order[swapB] = temp;
+		    //    System.out.print( " ");
+		    //	    mutants.get(i).showGenes();
+		    //   System.out.println();
+		    totalmutations++;
+		}
 	}
     }
 
     void printPop(){
-
-	for (int i = 0; i < mutants.size(); i++) {
-
-	    mutants.get(i).showGenes();
-	    System.out.println( " - " + mutants.get(i).distance);
-	}
+	    
+	System.out.println( "\n\nTotal mutations this generation: " + totalmutations + "\n");
+	System.out.print( "Population size = " + mutants.size() + ", shortest distance so far is - ");
+	System.out.println( mutants.get(0).distance + "\n and best route is: \n");
+	mutants.get(0).showRoute();
     }
 
     //little mutant objects so that a new version can be created quickly and easily with rules based on
@@ -342,7 +393,7 @@ class Genetic{
 
 	    for (int i = 0; i < 7; i++) {
 
-		System.out.print( route.valueOf(order[i]) + " to " + route.valueOf(order[i+1]));     
+		System.out.println( route.valueOf(order[i]) + " to " + route.valueOf(order[i+1]));     
 	    }
 
 	    System.out.println();
@@ -352,10 +403,10 @@ class Genetic{
     //main method
     public static void main( String[] args){
 
-	Genetic problem = new Genetic("distances", 10);
-	problem.generation( 10, 0, 4);
-	problem.printPop();
-	problem.generation( 10, 4, 8);
-	problem.printPop();
+	Genetic problem = new Genetic("distances", 20);
+	problem.generation( 16, 2, 5, 0);
+	problem.generation( 4, 3, 4, 1);
+        problem.generation( 1, 4, 5, 0.4);
+
     }
 }
