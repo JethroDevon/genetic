@@ -3,6 +3,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.*;
 
 class Genetic{
 
@@ -35,7 +36,8 @@ class Genetic{
     int[][] distanceMatrix = new int[8][8];
     BufferedReader br;
 
-    //constructor
+    //constructor takes in file containing matrix of 6 distances
+    //and the starting population of mutants
     Genetic( String fileName, int startingPopulation){
 
 	//parse file in args that contains a comma seperated list of values
@@ -74,10 +76,10 @@ class Genetic{
 	    }
 	    System.out.println();
 	}
+	
 	System.out.println();
 
-	//initialises mutants array with startingPopulation number of random mutants
-        for (int i = 0; i < startingPopulation; i++) {
+	for (int i = 0; i < startingPopulation; i++) {
 
 	    mutants.add(new mutant(createMutant()));
 	}
@@ -167,11 +169,79 @@ class Genetic{
 	return check;
     }
 
-    void test(){
+    //this runs the program for one generation, the first argument is the percentage of
+    //the population to keep after sorting, the next two args are the crossover points
+    //for breeding
+    void generation( double percpop, int pointOne, int pointTwo){
 
-	mutant child = new mutant( mutants.get(0), mutants.get(1), 3, 6);
-	 
-	child.showGenes();
+	//breeds each mutant against the other
+	breed( pointOne, pointTwo);
+
+        //the following block discards the remaining percentage of the sorted arraylist of mutants
+        double pop = mutants.size();
+	double total = (pop/100) * percpop;
+	ArrayList<mutant>survivors = new ArrayList<mutant>();
+	Collections.reverse(mutants);
+
+	for (int i = 0; i < (int)total; i++) {
+
+	    survivors.add( mutants.get(i));
+	}
+
+	System.out.println( "how" + survivors.size());
+
+	//the mutants are wiped out
+	mutants.clear();
+	//but the survivors are added to the final population
+	mutants.addAll( survivors);
+    }
+
+    //breeds whole array against each other and adds the children to the array againm then sorts the array
+    //based on distances
+    void breed( int pointOne, int pointTwo){
+
+	ArrayList<mutant>babies = new ArrayList<mutant>();
+
+	for (int i = 0; i < mutants.size(); i++) {
+	    for (int q = 0; q < mutants.size(); q++) {
+
+		//if not somehow breeding with self create new baby mutants
+		if( i != q){
+
+		    babies.add( new mutant( mutants.get(i), mutants.get(q), pointOne, pointTwo));
+		}
+	    }
+	}
+
+	mutants.addAll(babies);
+	
+	//following block is a bubble sort operation on the arraylist of mutants
+	boolean sorted = false;
+        while( !sorted) {
+	    
+	    mutant tempmutant;
+	    sorted = true;
+	    
+	    for (int i = 0; i < mutants.size()-1; i++) {
+
+		if( mutants.get(i).distance < mutants.get(i+1).distance ){
+
+		    tempmutant = mutants.get(i);
+		    mutants.set( i, mutants.get(i));
+		    mutants.set( i+1,tempmutant);
+		    sorted = false;
+		}
+	    }
+	}
+    }
+
+    void printPop(){
+
+	for (int i = 0; i < mutants.size(); i++) {
+
+	    mutants.get(i).showGenes();
+	    System.out.println( " - " + mutants.get(i).distance);
+	}
     }
 
     //little mutant objects so that a new version can be created quickly and easily with rules based on
@@ -179,11 +249,12 @@ class Genetic{
     class mutant{
 
 	int[] order = new int[8];
-
+	int distance;
 
         mutant( int[] arr){
 
 	    order = arr;
+	    distance = getDistance();
 	}
 
 	//this constructor makes a new mutant out of parent mutants, the following arguments
@@ -233,11 +304,13 @@ class Genetic{
 		    }
 		}
 
+		//initialise member variables on creation
 		order = genes;
+		distance = getDistance();
 	    }catch( Exception e){
 
 		//if The algorithm in main is not being properly implemented
-		System.out.println( " crossover points are likley to be out of bounds");
+		System.out.println( " crossover points are likley to be out of bounds, mutant failed to initialise");
 	    }
 	}
 
@@ -262,8 +335,6 @@ class Genetic{
 
 		System.out.print(g);
 	    }
-
-	    System.out.println();
 	}
 
 	//this function outputs the route based on the the array 'order'
@@ -281,8 +352,10 @@ class Genetic{
     //main method
     public static void main( String[] args){
 
-	Genetic problem = new Genetic("distances", 2);
-	problem.test();
-
+	Genetic problem = new Genetic("distances", 10);
+	problem.generation( 10, 0, 4);
+	problem.printPop();
+	problem.generation( 10, 4, 8);
+	problem.printPop();
     }
 }
