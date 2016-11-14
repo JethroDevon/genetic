@@ -176,9 +176,6 @@ class Genetic{
     //based on percentage of the population
     void generation( double percpop, int pointOne, int pointTwo, double mutationRate){
 
-	//breeds each mutant against the other
-	breed( pointOne, pointTwo, mutationRate);
-
         //the following block discards the remaining percentage of the sorted arraylist of mutants
         double pop = mutants.size();
 	double total = (pop/100) * percpop;
@@ -206,6 +203,9 @@ class Genetic{
 	//but the survivors are added to the final population
 	mutants.addAll( survivors);
 
+        //breeds each mutant against the other
+	breed( pointOne, pointTwo, mutationRate);
+
         //prints a little population data
 	printPop();
     }
@@ -232,7 +232,7 @@ class Genetic{
 	totalmutations = 0;
 	
 	//mutate some of the mutants
-	mutate( mutationrate);
+	mutate( mutationrate ,pointOne, pointTwo);
 	
 	//following block is a bubble sort operation on the arraylist of mutants
 	boolean sorted = true;
@@ -256,7 +256,7 @@ class Genetic{
     }
 
     //chance of mutating a mutant
-    void mutate( double rate){
+    void mutate( double rate, int pointone, int pointwo){
 
 	//work out what the rate is in relation to the size
 	//of the population
@@ -272,8 +272,8 @@ class Genetic{
 		//of mutation, mutate the gene
 		if( chance > predict){
 
-		    int swapA = rand.nextInt(8);
-		    int swapB = rand.nextInt(8);
+		    int swapA = rand.nextInt(pointone) + pointwo;
+		    int swapB = rand.nextInt(pointone) + pointwo;
 		    // System.out.print("mutation: ");
 		    //    mutants.get(i).showGenes();
 		    int temp = mutants.get(i).order[swapA];
@@ -403,10 +403,11 @@ class Genetic{
     //main method
     public static void main( String[] args){
 
-	Genetic problem = new Genetic("distances", 20);
-	problem.generation( 16, 2, 5, 0);
-	problem.generation( 4, 3, 4, 1);
-        problem.generation( 1, 4, 5, 0.4);
-
+	Genetic problem = new Genetic("distances", 150);//<-not the starting population!!
+	//the first arg in the following function only keeps that percentage of it!!!
+	problem.generation( 20, 3, 4, 1);
+	problem.generation( 6, 3, 4, 0.7);
+	problem.generation( 3, 3, 4, 0.5);
+	problem.generation( 2, 3, 4, 0.2);
     }
 }
