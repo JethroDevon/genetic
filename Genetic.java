@@ -59,7 +59,7 @@ class Genetic{
 		count++;
 	    }
 	    
-	   br.close();
+	    br.close();
 	}catch(Exception e){
 
 	    System.out.println("Something is wrong with the text file formatting");
@@ -167,6 +167,13 @@ class Genetic{
 	return check;
     }
 
+    void test(){
+
+	mutant child = new mutant( mutants.get(0), mutants.get(1), 3, 6);
+	 
+	child.showGenes();
+    }
+
     //little mutant objects so that a new version can be created quickly and easily with rules based on
     //constructor arguments
     class mutant{
@@ -179,9 +186,59 @@ class Genetic{
 	    order = arr;
 	}
 
-	//this constructor makes a new mutant out of parent mutants
-        mutant( mutant _mum, mutant _dad){
+	//this constructor makes a new mutant out of parent mutants, the following arguments
+	//define the starting crossover point and the finishing crossover point
+        mutant( mutant _mum, mutant _dad, int cpone, int cptwo){
 
+	    try{
+		
+		//new genes made from the crossover of mum and dad
+		int[] genes = new int[8];
+
+		//set all genes to -1 for detecting if changes have been made
+		for (int i = 0; i < 8; i++) {
+
+		    genes[i] = -1;
+		}
+
+		//add genes to stay uncrossed
+		for (int i = cpone; i < cptwo; i++) {
+
+		    genes[i] = _mum.order[i];
+		}
+
+		//first half of crossover
+		//cross genes over from dad on the condition that
+		//they are not allready in the new genes
+		for (int i = 0; i < cpone; i++) {
+		    for (int q = 0; q < 8; q++) {
+		   	   
+			if( !numIsPresent( _dad.order[q], genes)){
+
+			    genes[i] = _dad.order[q];
+			    break;
+			}		    
+		    }
+		}
+
+		//second half of crossover
+		for (int i = cptwo; i < 8; i++) {
+		    for (int q = 0; q < 8; q++) {
+		   	   
+			if( !numIsPresent( _dad.order[q], genes)){
+
+			    genes[i] = _dad.order[q];
+			    break;
+			}		    
+		    }
+		}
+
+		order = genes;
+	    }catch( Exception e){
+
+		//if The algorithm in main is not being properly implemented
+		System.out.println( " crossover points are likley to be out of bounds");
+	    }
 	}
 
 	//this function returns the total distance of the rout that it takes
@@ -190,21 +247,42 @@ class Genetic{
 	    int total = 0;
 	    for (int i = 0; i < 7; i++) {
 
-		//	System.out.print( route.valueOf(order[i]) + " to " + route.valueOf(order[i+1]));
 		total += getRoute( route.valueOf(order[i]).ordinal(), route.valueOf(order[i+1]).ordinal());
-		//	System.out.println( " = " + total + " miles.");
+
        
 	    }
 
 	    // System.out.println(total);
 	    return total;
 	}
-    }
 
+	void showGenes(){
+
+	    for ( int g: order) {
+
+		System.out.print(g);
+	    }
+
+	    System.out.println();
+	}
+
+	//this function outputs the route based on the the array 'order'
+	void showRoute(){
+
+	    for (int i = 0; i < 7; i++) {
+
+		System.out.print( route.valueOf(order[i]) + " to " + route.valueOf(order[i+1]));     
+	    }
+
+	    System.out.println();
+	}
+    }
+    
     //main method
     public static void main( String[] args){
 
-	Genetic problem = new Genetic("distances", 1);
+	Genetic problem = new Genetic("distances", 2);
+	problem.test();
 
     }
 }
