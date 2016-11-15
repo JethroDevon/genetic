@@ -402,12 +402,13 @@ class Genetic{
     //main method
     public static void main( String[] args){
 
-        Genetic problem = new Genetic("distances", 150);//<-not the starting population!!
+        Genetic problem = new Genetic("distances", 100);//<-not the starting population!!
         //the first arg in the following function only keeps that percentage of it!!!
         problem.generation( 20, 3, 5, 1);
         problem.generation( 8, 3, 5, 0.3);
+        problem.generation( 3, 3, 5, 0.2);
         problem.generation( 2, 3, 5, 0.2);
-        problem.generation( 1, 3, 5, 0.1);
+        problem.generation( 1, 3, 5, 0.2);
 
     }
 }
